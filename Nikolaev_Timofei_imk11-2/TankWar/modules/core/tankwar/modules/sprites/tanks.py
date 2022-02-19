@@ -2,7 +2,7 @@ import pygame
 import random
 from .bullet import Bullet
 
-
+# Подключение действий к танкам
 class PlayerTank(pygame.sprite.Sprite):
     def __init__(self, name, player_tank_images, position, border_len, screensize, direction='up', bullet_images=None, protected_mask=None, boom_image=None, **kwargs):
         pygame.sprite.Sprite.__init__(self)
@@ -152,14 +152,6 @@ class PlayerTank(pygame.sprite.Sprite):
             return Bullet(bullet_images=self.bullet_images, screensize=self.screensize, direction=self.direction, position=position, border_len=self.border_len, is_stronger=is_stronger, speed=speed)
         return False
 
-    def improveTankLevel(self):
-        if self.booming_flag:
-            return False
-        self.tanklevel = min(self.tanklevel+1, len(self.player_tank_images)-1)
-        self.tank_image = self.player_tank_images[self.tanklevel].convert_alpha()
-        self.setDirection(self.direction)
-        self.image = self.tank_direction_image.subsurface((48*int(self.switch_pointer), 0), (48, 48))
-        return True
 
     def decreaseTankLevel(self):
         if self.booming_flag:
@@ -174,20 +166,8 @@ class PlayerTank(pygame.sprite.Sprite):
             self.image = self.tank_direction_image.subsurface((48*int(self.switch_pointer), 0), (48, 48))
         return True if self.tanklevel < 0 else False
 
-    def addLife(self):
-        self.num_lifes += 1
-
-    def setProtected(self):
-        self.is_protected = True
-
     def draw(self, screen):
         screen.blit(self.image, self.rect)
-        if self.is_protected:
-            self.protected_mask_flash_count += 1
-            if self.protected_mask_flash_count > self.protected_mask_flash_time:
-                self.protected_mask_pointer = not self.protected_mask_pointer
-                self.protected_mask_flash_count = 0
-            screen.blit(self.protected_mask.subsurface((48*self.protected_mask_pointer, 0), (48, 48)), self.rect)
 
     def reset(self):
 
@@ -218,7 +198,7 @@ class PlayerTank(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.left, self.rect.top = self.init_position
 
-
+# Поведение танков-врагов
 class EnemyTank(pygame.sprite.Sprite):
     def __init__(self, enemy_tank_images, appear_image, position, border_len, screensize, bullet_images=None, food_images=None, boom_image=None, **kwargs):
         pygame.sprite.Sprite.__init__(self)

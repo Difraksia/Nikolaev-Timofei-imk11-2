@@ -1,7 +1,7 @@
 import pygame
 from .....utils import QuitGame
 
-
+# Меню проигрыша
 def GameEndIterface(screen, cfg, resource_loader, is_win=True):
     background_img = resource_loader.images['others']['background']
     color_white = (255, 255, 255)
@@ -66,8 +66,7 @@ def GameEndIterface(screen, cfg, resource_loader, is_win=True):
         pygame.display.update()
         clock.tick(cfg.FPS)
 
-
-
+# Меню старта
 def GameStartInterface(screen, cfg, resource_loader):
     background_img = resource_loader.images['others']['background']
     color_white = (255, 255, 255)
@@ -80,12 +79,12 @@ def GameStartInterface(screen, cfg, resource_loader):
     tank_cursor = resource_loader.images['player']['player1'][0].convert_alpha().subsurface((0, 144), (48, 48))
     tank_rect = tank_cursor.get_rect()
 
-    player_render_white = font.render('I ИГРОК', True, color_white)
-    player_render_red = font.render('I ИГРОК', True, color_red)
+    player_render_white = font.render('1 Игрок', True, color_white)
+    player_render_red = font.render('1 Игрок', True, color_red)
     player_rect = player_render_white.get_rect()
     player_rect.left, player_rect.top = cfg.SCREENSIZE[0] / 2.8, cfg.SCREENSIZE[1] / 2.5
-    players_render_white = font.render('II ИГРОКА', True, color_white)
-    players_render_red = font.render('II ИГРОКА', True, color_red)
+    players_render_white = font.render('2 Игрока', True, color_white)
+    players_render_red = font.render('2 Игрока', True, color_red)
     players_rect = players_render_white.get_rect()
     players_rect.left, players_rect.top = cfg.SCREENSIZE[0] / 2.8, cfg.SCREENSIZE[1] / 2
 
@@ -128,7 +127,7 @@ def GameStartInterface(screen, cfg, resource_loader):
         pygame.display.update()
         clock.tick(cfg.FPS)
 
-
+# Экран загрузки уровня
 def SwitchLevelIterface(screen, cfg, resource_loader, level_next=1):
     background_img = resource_loader.images['others']['background']
     color_white = (255, 255, 255)

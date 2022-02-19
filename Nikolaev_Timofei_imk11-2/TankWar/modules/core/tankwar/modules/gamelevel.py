@@ -1,10 +1,9 @@
-
 import pygame
 import random
 from .sprites import *
 from ....utils import QuitGame
 
-
+# Создание игрового уровня
 class GameLevel():
     def __init__(self, gamelevel, levelfilepath, is_dual_mode, cfg, resource_loader, **kwargs):
         self.cfg = cfg
@@ -34,6 +33,7 @@ class GameLevel():
 
         self.__parseLevelFile()
 
+    # Добавление объектов на уровень
     def start(self, screen):
         screen, resource_loader = pygame.display.set_mode((self.width+self.panel_width, self.height)), self.resource_loader
 
@@ -67,7 +67,7 @@ class GameLevel():
         for position in self.enemy_tank_positions:
             enemy_tanks_group.add(EnemyTank(
                 enemy_tank_images=resource_loader.images['enemy'], appear_image=resource_loader.images['others']['appear'], position=position, 
-                border_len=self.border_len, screensize=[self.width, self.height], bullet_images=resource_loader.images['bullet'], 
+                border_len=self.border_len, screensize=[self.width, self.height], bullet_images=resource_loader.images['bullet'],
                 food_images=resource_loader.images['food'], boom_image=resource_loader.images['others']['boom_static']
             ))
 
@@ -97,7 +97,7 @@ class GameLevel():
                             )
                             if (not pygame.sprite.spritecollide(enemy_tank, enemy_tanks_group, False, None)) and (not pygame.sprite.spritecollide(enemy_tank, player_tanks_group, False, None)):
                                 enemy_tanks_group.add(enemy_tank)
-
+            # Управление танками
             key_pressed = pygame.key.get_pressed()
 
             if tank_player1.num_lifes >= 0:
@@ -140,7 +140,7 @@ class GameLevel():
                     player_tanks_group.remove(tank_player2)
                     tank_player2.move('right', self.scene_elems, player_tanks_group, enemy_tanks_group, home)
                     player_tanks_group.add(tank_player2)
-                elif key_pressed[pygame.K_KP0]:
+                elif key_pressed[pygame.K_RCTRL]:
                     bullet = tank_player2.shoot()
                     if bullet:
                         player_bullets_group.add(bullet)
@@ -149,6 +149,7 @@ class GameLevel():
             pygame.sprite.groupcollide(player_bullets_group, self.scene_elems.get('brick_group'), True, True)
             pygame.sprite.groupcollide(enemy_bullets_group, self.scene_elems.get('brick_group'), True, True)
 
+            # Поведение пули
             for bullet in player_bullets_group:
                 if pygame.sprite.spritecollide(bullet, self.scene_elems.get('iron_group'), bullet.is_stronger, None):
                     player_bullets_group.remove(bullet)
@@ -156,6 +157,7 @@ class GameLevel():
 
             pygame.sprite.groupcollide(player_bullets_group, enemy_bullets_group, True, True)
 
+            # Поведение танков
             for tank in enemy_tanks_group:
                 if pygame.sprite.spritecollide(tank, player_bullets_group, True, None):
                     if tank.food:
@@ -167,13 +169,10 @@ class GameLevel():
 
             for tank in player_tanks_group:
                 if pygame.sprite.spritecollide(tank, enemy_bullets_group, True, None):
-                    if tank.is_protected:
-                        self.sounds['blast'].play()
-                    else:
-                        if tank.decreaseTankLevel():
-                            self.sounds['bang'].play()
-                        if tank.num_lifes < 0:
-                            player_tanks_group.remove(tank)
+                    if tank.decreaseTankLevel():
+                        self.sounds['bang'].play()
+                    if tank.num_lifes < 0:
+                        player_tanks_group.remove(tank)
 
             if pygame.sprite.spritecollide(home, player_bullets_group, True, None):
                 is_win = False
@@ -187,37 +186,6 @@ class GameLevel():
 
             if pygame.sprite.groupcollide(player_tanks_group, self.scene_elems.get('tree_group'), False, False):
                 self.sounds['hit'].play()
-
-            for player_tank in player_tanks_group:
-                for food in foods_group:
-                    if pygame.sprite.collide_rect(player_tank, food):
-                        if food.name == 'boom':
-                            self.sounds['add'].play()
-                            for _ in enemy_tanks_group:
-                                self.sounds['bang'].play()
-                            self.total_enemy_num -= len(enemy_tanks_group)
-                            enemy_tanks_group = pygame.sprite.Group()
-                        elif food.name == 'clock':
-                            self.sounds['add'].play()
-                            for enemy_tank in enemy_tanks_group:
-                                enemy_tank.setStill()
-                        elif food.name == 'gun':
-                            self.sounds['add'].play()
-                            player_tank.improveTankLevel()
-                        elif food.name == 'iron':
-                            self.sounds['add'].play()
-                            self.__pretectHome()
-                        elif food.name == 'protect':
-                            self.sounds['add'].play()
-                            player_tank.setProtected()
-                        elif food.name == 'star':
-                            self.sounds['add'].play()
-                            player_tank.improveTankLevel()
-                            player_tank.improveTankLevel()
-                        elif food.name == 'tank':
-                            self.sounds['add'].play()
-                            player_tank.addLife()
-                        foods_group.remove(food)
 
             for key, value in self.scene_elems.items():
                 if key in ['ice_group', 'river_group']:
@@ -253,10 +221,6 @@ class GameLevel():
 
             home.draw(screen)
 
-            for food in foods_group:
-                if food.update():
-                    foods_group.remove(food)
-            foods_group.draw(screen)
             self.__showGamePanel(screen, tank_player1, tank_player2) if self.is_dual_mode else self.__showGamePanel(screen, tank_player1)
 
             if len(player_tanks_group) == 0:
@@ -271,91 +235,92 @@ class GameLevel():
         screen = pygame.display.set_mode((self.width, self.height))
         return is_win
 
+    # Панель инструкций справа
     def __showGamePanel(self, screen, tank_player1, tank_player2=None):
         color_white = (255, 255, 255)
-        # 玩家一操作提示
-        player1_operate_tip = self.font.render('Operate-P1:', True, color_white)
+
+        player1_operate_tip = self.font.render('Действия-Игрок1:', True, color_white)
         player1_operate_tip_rect = player1_operate_tip.get_rect()
         player1_operate_tip_rect.left, player1_operate_tip_rect.top = self.width+5, self.height/30
         screen.blit(player1_operate_tip, player1_operate_tip_rect)
-        player1_operate_tip = self.font.render('K_w: Up', True, color_white)
+        player1_operate_tip = self.font.render('K_w: Вверх', True, color_white)
         player1_operate_tip_rect = player1_operate_tip.get_rect()
         player1_operate_tip_rect.left, player1_operate_tip_rect.top = self.width+5, self.height*2/30
         screen.blit(player1_operate_tip, player1_operate_tip_rect)
-        player1_operate_tip = self.font.render('K_s: Down', True, color_white)
+        player1_operate_tip = self.font.render('K_s: Вниз', True, color_white)
         player1_operate_tip_rect = player1_operate_tip.get_rect()
         player1_operate_tip_rect.left, player1_operate_tip_rect.top = self.width+5, self.height*3/30
         screen.blit(player1_operate_tip, player1_operate_tip_rect)
-        player1_operate_tip = self.font.render('K_a: Left', True, color_white)
+        player1_operate_tip = self.font.render('K_a: Влево', True, color_white)
         player1_operate_tip_rect = player1_operate_tip.get_rect()
         player1_operate_tip_rect.left, player1_operate_tip_rect.top = self.width+5, self.height*4/30
         screen.blit(player1_operate_tip, player1_operate_tip_rect)
-        player1_operate_tip = self.font.render('K_d: Right', True, color_white)
+        player1_operate_tip = self.font.render('K_d: Вправо', True, color_white)
         player1_operate_tip_rect = player1_operate_tip.get_rect()
         player1_operate_tip_rect.left, player1_operate_tip_rect.top = self.width+5, self.height*5/30
         screen.blit(player1_operate_tip, player1_operate_tip_rect)
-        player1_operate_tip = self.font.render('K_SPACE: Shoot', True, color_white)
+        player1_operate_tip = self.font.render('K_SPACE: Стрелять', True, color_white)
         player1_operate_tip_rect = player1_operate_tip.get_rect()
         player1_operate_tip_rect.left, player1_operate_tip_rect.top = self.width+5, self.height*6/30
         screen.blit(player1_operate_tip, player1_operate_tip_rect)
-        # 玩家二操作提示
-        player2_operate_tip = self.font.render('Operate-P2:', True, color_white)
+
+        player2_operate_tip = self.font.render('Действия-Игрок2:', True, color_white)
         player2_operate_tip_rect = player2_operate_tip.get_rect()
         player2_operate_tip_rect.left, player2_operate_tip_rect.top = self.width+5, self.height*8/30
         screen.blit(player2_operate_tip, player2_operate_tip_rect)
-        player2_operate_tip = self.font.render('K_UP: Up', True, color_white)
+        player2_operate_tip = self.font.render('K_UP: Вверх', True, color_white)
         player2_operate_tip_rect = player2_operate_tip.get_rect()
         player2_operate_tip_rect.left, player2_operate_tip_rect.top = self.width+5, self.height*9/30
         screen.blit(player2_operate_tip, player2_operate_tip_rect)
-        player2_operate_tip = self.font.render('K_DOWN: Down', True, color_white)
+        player2_operate_tip = self.font.render('K_DOWN: Вниз', True, color_white)
         player2_operate_tip_rect = player2_operate_tip.get_rect()
         player2_operate_tip_rect.left, player2_operate_tip_rect.top = self.width+5, self.height*10/30
         screen.blit(player2_operate_tip, player2_operate_tip_rect)
-        player2_operate_tip = self.font.render('K_LEFT: Left', True, color_white)
+        player2_operate_tip = self.font.render('K_LEFT: Влево', True, color_white)
         player2_operate_tip_rect = player2_operate_tip.get_rect()
         player2_operate_tip_rect.left, player2_operate_tip_rect.top = self.width+5, self.height*11/30
         screen.blit(player2_operate_tip, player2_operate_tip_rect)
-        player2_operate_tip = self.font.render('K_RIGHT: Right', True, color_white)
+        player2_operate_tip = self.font.render('K_RIGHT: Вправо', True, color_white)
         player2_operate_tip_rect = player2_operate_tip.get_rect()
         player2_operate_tip_rect.left, player2_operate_tip_rect.top = self.width+5, self.height*12/30
         screen.blit(player2_operate_tip, player2_operate_tip_rect)
-        player2_operate_tip = self.font.render('K_KP0: Shoot', True, color_white)
+        player2_operate_tip = self.font.render('K_L.CTRL: Стрелять', True, color_white)
         player2_operate_tip_rect = player2_operate_tip.get_rect()
         player2_operate_tip_rect.left, player2_operate_tip_rect.top = self.width+5, self.height*13/30
         screen.blit(player2_operate_tip, player2_operate_tip_rect)
 
-        player1_state_tip = self.font.render('State-P1:', True, color_white)
+        player1_state_tip = self.font.render('Состояние-Игрок1:', True, color_white)
         player1_state_tip_rect = player1_state_tip.get_rect()
         player1_state_tip_rect.left, player1_state_tip_rect.top = self.width+5, self.height*15/30
         screen.blit(player1_state_tip, player1_state_tip_rect)
-        player1_state_tip = self.font.render('Life: %s' % tank_player1.num_lifes, True, color_white)
+        player1_state_tip = self.font.render('Жизни: %s' % tank_player1.num_lifes, True, color_white)
         player1_state_tip_rect = player1_state_tip.get_rect()
         player1_state_tip_rect.left, player1_state_tip_rect.top = self.width+5, self.height*16/30
         screen.blit(player1_state_tip, player1_state_tip_rect)
-        player1_state_tip = self.font.render('TLevel: %s' % tank_player1.tanklevel, True, color_white)
+        player1_state_tip = self.font.render('Уровень: %s' % tank_player1.tanklevel, True, color_white)
         player1_state_tip_rect = player1_state_tip.get_rect()
         player1_state_tip_rect.left, player1_state_tip_rect.top = self.width+5, self.height*17/30
         screen.blit(player1_state_tip, player1_state_tip_rect)
 
-        player2_state_tip = self.font.render('State-P2:', True, color_white)
+        player2_state_tip = self.font.render('Состояние-Игрок2:', True, color_white)
         player2_state_tip_rect = player2_state_tip.get_rect()
         player2_state_tip_rect.left, player2_state_tip_rect.top = self.width+5, self.height*19/30
         screen.blit(player2_state_tip, player2_state_tip_rect)
-        player2_state_tip = self.font.render('Life: %s' % tank_player2.num_lifes, True, color_white) if tank_player2 else self.font.render('Life: None', True, color_white)
+        player2_state_tip = self.font.render('Жизни: %s' % tank_player2.num_lifes, True, color_white) if tank_player2 else self.font.render('Жизни: None', True, color_white)
         player2_state_tip_rect = player2_state_tip.get_rect()
         player2_state_tip_rect.left, player2_state_tip_rect.top = self.width+5, self.height*20/30
         screen.blit(player2_state_tip, player2_state_tip_rect)
-        player2_state_tip = self.font.render('TLevel: %s' % tank_player2.tanklevel, True, color_white) if tank_player2 else self.font.render('TLevel: None', True, color_white)
+        player2_state_tip = self.font.render('Уровень: %s' % tank_player2.tanklevel, True, color_white) if tank_player2 else self.font.render('Уровень: None', True, color_white)
         player2_state_tip_rect = player2_state_tip.get_rect()
         player2_state_tip_rect.left, player2_state_tip_rect.top = self.width+5, self.height*21/30
         screen.blit(player2_state_tip, player2_state_tip_rect)
 
-        game_level_tip = self.font.render('Game Level: %s' % self.gamelevel, True, color_white)
+        game_level_tip = self.font.render('Текущий уровень: %s' % self.gamelevel, True, color_white)
         game_level_tip_rect = game_level_tip.get_rect()
         game_level_tip_rect.left, game_level_tip_rect.top = self.width+5, self.height*23/30
         screen.blit(game_level_tip, game_level_tip_rect)
 
-        remaining_enemy_tip = self.font.render('Remain Enemy: %s' % self.total_enemy_num, True, color_white)
+        remaining_enemy_tip = self.font.render('Врагов осталось: %s' % self.total_enemy_num, True, color_white)
         remaining_enemy_tip_rect = remaining_enemy_tip.get_rect()
         remaining_enemy_tip_rect.left, remaining_enemy_tip_rect.top = self.width+5, self.height*24/30
         screen.blit(remaining_enemy_tip, remaining_enemy_tip_rect)
@@ -364,6 +329,7 @@ class GameLevel():
         for x, y in self.home_around_positions:
             self.scene_elems['iron_group'].add(Iron((x, y), self.resource_loader.images['scene']['iron']))
 
+    # Чтение файла уровня
     def __parseLevelFile(self):
         f = open(self.levelfilepath, errors='ignore')
         num_row = -1

@@ -1,6 +1,6 @@
 import pygame
 
-
+# Поведение изображений пули
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, bullet_images, screensize, direction, position, border_len, is_stronger=False, speed=8, **kwargs):
         pygame.sprite.Sprite.__init__(self)

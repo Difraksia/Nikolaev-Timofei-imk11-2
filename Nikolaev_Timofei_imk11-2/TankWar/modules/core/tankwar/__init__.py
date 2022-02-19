@@ -2,7 +2,7 @@ import os
 from ..base import PygameBaseGame
 from .modules import SwitchLevelIterface, GameEndIterface, GameStartInterface, GameLevel
 
-
+# Создание окна игры, общая его настройка
 class Config():
     rootdir = os.path.split(os.path.abspath(__file__))[0]
     FPS = 60
@@ -14,6 +14,7 @@ class Config():
 
     LEVELFILEDIR = os.path.join(rootdir, 'modules/levels')
 
+    # Создание словарей со шрифтами, звуками и изображениями
     FONT_PATHS_DICT = {
         'start': {'name': os.path.join(rootdir.replace('tankwar', 'base'), 'resources/fonts/Gabriola.ttf'), 'size': SCREENSIZE[0] // 12},
         'switch': {'name': os.path.join(rootdir.replace('tankwar', 'base'), 'resources/fonts/Gabriola.ttf'), 'size': SCREENSIZE[0] // 20},
@@ -100,12 +101,14 @@ class Config():
         },
     }
 
-
+# Класс запуска игры
 class TankWarGame(PygameBaseGame):
     game_type = 'tankwar'
+
     def __init__(self, **kwargs):
         self.cfg = Config
         super(TankWarGame, self).__init__(config=self.cfg, **kwargs)
+
     def run(self):
         is_quit_game = False
         while not is_quit_game:
@@ -116,5 +119,6 @@ class TankWarGame(PygameBaseGame):
                 SwitchLevelIterface(screen, cfg, resource_loader, idx + 1)
                 game_level = GameLevel(idx+1, levelfilepath, is_dual_mode, cfg, resource_loader)
                 is_win = game_level.start(screen)
-                if not is_win: break
+                if not is_win:
+                    break
             is_quit_game = GameEndIterface(screen, cfg, resource_loader, is_win)

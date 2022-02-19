@@ -1,6 +1,6 @@
 import pygame
 
-
+# Поведение дома
 class Home(pygame.sprite.Sprite):
     def __init__(self, position, images, **kwargs):
         pygame.sprite.Sprite.__init__(self)

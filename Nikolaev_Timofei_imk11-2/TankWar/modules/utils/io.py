@@ -1,6 +1,6 @@
 import pygame
 
-
+# Загрузка шрифтов, музыки и изображений
 class PygameResourceLoader():
     def __init__(self, image_paths_dict=None, sound_paths_dict=None, font_paths_dict=None, bgm_path=None, **kwargs):
 
@@ -16,22 +16,19 @@ class PygameResourceLoader():
         self.sounds = self.defaultload(sound_paths_dict, pygame.mixer.Sound)
 
     def defaultload(self, resources_dict, load_func):
-        if resources_dict is None: return dict()
-        assert isinstance(resources_dict, dict)
         resources = dict()
         for key, value in resources_dict.items():
             if isinstance(value, dict):
                 resources[key] = self.defaultload(value, load_func)
             elif isinstance(value, list):
                 resources[key] = list()
-                for path in value: resources[key].append(load_func(path))
+                for path in value:
+                    resources[key].append(load_func(path))
             else:
                 resources[key] = load_func(value)
         return resources
 
     def fontload(self, font_paths_dict):
-        if font_paths_dict is None: return dict()
-        assert isinstance(font_paths_dict, dict)
         fonts = dict()
         for key, value in font_paths_dict.items():
             if not value.get('system_font', False):

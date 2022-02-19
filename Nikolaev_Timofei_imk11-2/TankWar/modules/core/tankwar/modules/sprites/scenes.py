@@ -1,6 +1,6 @@
 import pygame
 
-
+# Текстуры
 class Brick(pygame.sprite.Sprite):
     def __init__(self, position, image, **kwargs):
         pygame.sprite.Sprite.__init__(self)
